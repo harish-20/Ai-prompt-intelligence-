@@ -160,11 +160,16 @@ app.post('/api/generate-script', async (req, res) => {
   }
 });
 
-// 404 for unknown routes (must be before listen)
+// 404 for unknown routes
 app.use((req, res) => {
   res.status(404).json({ error: `Not found: ${req.method} ${req.path}` });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Backend API running at http://localhost:${PORT}`);
-});
+// Only listen when running locally (not on Vercel)
+if (!process.env.VERCEL) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Backend API running at http://localhost:${PORT}`);
+  });
+}
+
+export default app;
