@@ -1,19 +1,18 @@
 import { useState } from 'react';
+import axios from 'axios';
 
 const SIZE_OPTIONS = ['', 'Landscape', 'Vertical', 'Square'];
 
 // In dev: Vite proxies /api to backend. In prod: use VITE_API_URL env var.
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+const api = axios.create({
+  baseURL: API_BASE || undefined,
+  headers: { 'Content-Type': 'application/json' },
+});
+
 async function apiCall(endpoint, body) {
-  const url = `${API_BASE}/api${endpoint}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `Request failed: ${res.status}`);
+  const { data } = await api.post(`/api${endpoint}`, body);
   return data;
 }
 
@@ -45,7 +44,7 @@ export default function App() {
         category: data.category ?? '',
       });
     } catch (e) {
-      setError(e.message);
+      setError(e.response?.data?.error || e.message);
     } finally {
       setLoading(null);
     }
@@ -58,7 +57,7 @@ export default function App() {
       const data = await apiCall('/enhance', { prompt, options });
       setPrompt(data.enhancedPrompt ?? prompt);
     } catch (e) {
-      setError(e.message);
+      setError(e.response?.data?.error || e.message);
     } finally {
       setLoading(null);
     }
@@ -72,7 +71,7 @@ export default function App() {
       const data = await apiCall('/generate-script', { prompt });
       setScript(data.script ?? '');
     } catch (e) {
-      setError(e.message);
+      setError(e.response?.data?.error || e.message);
     } finally {
       setLoading(null);
     }
